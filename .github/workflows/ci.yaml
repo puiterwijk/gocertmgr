@@ -1,0 +1,21 @@
+name: CI
+on:
+  push:
+    branches:
+      - "*"
+  pull_request:
+    branches:
+      - "*"
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: go build cmd/gocertmgr.go
+      - run: |
+          echo '{"rootdir": "."}' >certmgr.json
+          ./gocertmgr createkeyandcert -cn "Test CA" -selfsigned ca testca
+          ./gocertmgr createkeyandcsr intermediateca
+          ./gocertmgr signcsr -cn "Intermediate CA" -signer testca ca intermediateca
+          ./gocertmgr createkeyandcert -cn "Server Cert" -dns testserver.example.com -signer intermediateca server servercert
+          ./gocertmgr createkeyandcert -cn "Client Cert" -signer testca client clientcert

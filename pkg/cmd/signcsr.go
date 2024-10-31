@@ -235,10 +235,11 @@ func executeCreateCSR(config *config.Config, args []string) error {
 		return err
 	}
 
-	pubkey, err := loadCsr(config, fset.Arg(1))
+	csr, err := loadCsr(config, fset.Arg(1))
 	if err != nil {
 		return fmt.Errorf("error loading CSR %s: %s", fset.Arg(1), err)
 	}
+	pubkey := csr.PublicKey
 
 	signerKey, err := loadPrivateKey(config, *signArgs.signerBase)
 	if err != nil {
