@@ -239,7 +239,7 @@ func executeCreateCSR(config *config.Config, args []string) error {
 	if err != nil {
 		return fmt.Errorf("error loading CSR %s: %s", fset.Arg(1), err)
 	}
-	pubkey := csr.PublicKey
+	pubkey := csr
 
 	signerKey, err := loadPrivateKey(config, *signArgs.signerBase)
 	if err != nil {
