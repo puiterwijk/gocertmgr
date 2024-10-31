@@ -47,7 +47,9 @@ func Execute() error {
 		return executeCreateCSR(cfg, fset.Args()[1:])
 	case "createkeyandcert":
 		return executeCreateKeyAndCert(cfg, fset.Args()[1:])
+	case "version":
+		return executeVersion()
 	default:
-		return fmt.Errorf("unknown command %s. Supported: [createkeyandcert | createkeyandcsr | signcsr]", fset.Arg(0))
+		return fmt.Errorf("unknown command %s. Supported: [createkeyandcert | createkeyandcsr | signcsr | version]", fset.Arg(0))
 	}
 }
