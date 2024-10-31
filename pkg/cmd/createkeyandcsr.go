@@ -71,18 +71,6 @@ func writePem(config *config.Config, outname string, format string, typeName str
 	return nil
 }
 
-const (
-	fileFormatPrivKey = "%s.priv.pem"
-	fileFormatCsr     = "%s.csr.pem"
-	fileFormatCert    = "%s.cert.pem"
-)
-
-const (
-	pemHeaderPrivKey = "PRIVATE KEY"
-	pemHeaderCsr     = "CERTIFICATE REQUEST"
-	pemHeaderCert    = "CERTIFICATE"
-)
-
 func writePrivKey(config *config.Config, outname string, key any) error {
 	derKey, err := x509.MarshalPKCS8PrivateKey(key)
 	if err != nil {
