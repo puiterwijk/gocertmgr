@@ -10,8 +10,9 @@ import (
 	"encoding/pem"
 	"flag"
 	"fmt"
-	"github.com/puiterwijk/gocertmgr/pkg/config"
 	"os"
+
+	"github.com/WatskeBart/gocertmgr/pkg/config"
 )
 
 type keyInfoFlags struct {

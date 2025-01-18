@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/puiterwijk/gocertmgr/pkg/config"
+	"github.com/WatskeBart/gocertmgr/pkg/config"
 )
 
 func parseConfig(configFile string) (config *config.Config, err error) {

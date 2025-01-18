@@ -5,7 +5,7 @@ import (
 	"flag"
 	"fmt"
 
-	"github.com/puiterwijk/gocertmgr/pkg/config"
+	"github.com/WatskeBart/gocertmgr/pkg/config"
 )
 
 func executeCreateKeyAndCert(config *config.Config, args []string) error {

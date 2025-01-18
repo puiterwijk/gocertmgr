@@ -8,12 +8,13 @@ import (
 	"encoding/pem"
 	"flag"
 	"fmt"
-	"github.com/puiterwijk/gocertmgr/pkg/config"
 	"math/big"
 	"os"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/WatskeBart/gocertmgr/pkg/config"
 )
 
 type signeeArgs struct {
