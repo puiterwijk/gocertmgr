@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 )
 
@@ -12,9 +13,18 @@ type Config struct {
 }
 
 func (c *Config) Check() error {
-	if c.Rootdir == "" {
-		return fmt.Errorf("rootdir is required")
+	if envDir := os.Getenv("CERTMGR_ROOT_DIR"); envDir != "" {
+		c.Rootdir = envDir
 	}
+
+	if c.Rootdir == "" {
+		currentDir, err := os.Getwd()
+		if err != nil {
+			return fmt.Errorf("failed to get current directory: %w", err)
+		}
+		c.Rootdir = currentDir
+	}
+
 	return nil
 }
 

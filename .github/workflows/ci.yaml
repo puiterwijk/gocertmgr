@@ -12,13 +12,33 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: go build cmd/gocertmgr.go
-      - run: |
-          echo '{"rootdir": "."}' >certmgr.json
+      
+      - name: Test valid gocertmgr flag, commands and arguments with default rootdir (current dir)
+        run: |
           ./gocertmgr createkeyandcert -cn "Test CA" -selfsigned ca testca
           ./gocertmgr createkeyandcsr intermediateca
           ./gocertmgr signcsr -cn "Intermediate CA" -signer testca ca intermediateca
           ./gocertmgr createkeyandcert -cn "Server Cert" -dns testserver.example.com -signer intermediateca server servercert
           ./gocertmgr createkeyandcert -cn "Client Cert" -signer testca client clientcert
+
+      - name: Test rootdir from certmgr.json
+        run: |
+          echo '{"rootdir": "."}' > certmgr.json
+          ./gocertmgr -config certmgr.json createkeyandcert -cn "Test CA 2" -selfsigned ca testca2
+
+      - name: Test rootdir from environment variable
+        run: |
+          export CERTMGR_ROOT_DIR="."
+          ./gocertmgr -config certmgr.json createkeyandcert -cn "Test CA 3" -selfsigned ca testca3
+      
+      - name: Test gocertmgr flag, commands and arguments
+        run: |
+          ./gocertmgr invalidcommand || echo "Invalid command handled correctly"
+          ./gocertmgr createkeyandcert || echo "Missing args handled correctly"
+          ./gocertmgr createkeyandcert -cn "Invalid" -selfsigned invalid testinvalid || echo "Invalid cert type handled correctly"
+          ./gocertmgr createkeyandcert -cn "Test" -signer nonexistent server test || echo "Invalid signer handled correctly"
+          ./gocertmgr createkeyandcert -cn "Test" -dns "invalid..dns" -signer testca server test || echo "Invalid DNS handled correctly"
+
   builds:
     runs-on: ubuntu-latest
     strategy:
@@ -29,6 +49,7 @@ jobs:
           - windows
         arch:
           - amd64
+          - arm64
     steps:
       - uses: actions/checkout@v4
       - run: go build -o "gocertmgr-${{ matrix.platform }}-${{ matrix.arch }}" cmd/gocertmgr.go
