@@ -90,7 +90,7 @@ jobs:
           prerelease: contains(github.ref, '-')
           files: builds/**/*
           body: |
-            ## GoCertMgr ${{ github.ref_name }}
+            ## gocertmgr ${{ github.ref_name }}
             
             ### Binaries
             - Linux (amd64, arm64)
