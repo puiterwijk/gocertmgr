@@ -1,3 +1,5 @@
+[![CI](https://github.com/WatskeBart/gocertmgr/actions/workflows/ci.yaml/badge.svg)](https://github.com/WatskeBart/gocertmgr/actions/workflows/ci.yaml) [![CodeQL](https://github.com/WatskeBart/gocertmgr/actions/workflows/github-code-scanning/codeql/badge.svg?branch=main)](https://github.com/WatskeBart/gocertmgr/actions/workflows/github-code-scanning/codeql) [![Dependabot Updates](https://github.com/WatskeBart/gocertmgr/actions/workflows/dependabot/dependabot-updates/badge.svg?branch=main)](https://github.com/WatskeBart/gocertmgr/actions/workflows/dependabot/dependabot-updates)
+
 # A certificate manager written in Go
 
 Usage:
