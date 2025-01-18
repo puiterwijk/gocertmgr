@@ -49,6 +49,7 @@ jobs:
           - windows
         arch:
           - amd64
+          - arm64
     steps:
       - uses: actions/checkout@v4
       - run: go build -o "gocertmgr-${{ matrix.platform }}-${{ matrix.arch }}" cmd/gocertmgr.go
