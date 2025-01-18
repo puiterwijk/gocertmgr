@@ -8,7 +8,7 @@ import (
 var Version string = "0.2.0"
 
 func executeVersion() error {
-	fmt.Printf("GoCertMgr Version: %s\n", Version)
+	fmt.Printf("gocertmgr version: %s\n", Version)
 
 	// Also show build info for debugging purposes
 	if verInfo, ok := debug.ReadBuildInfo(); ok {
