@@ -13,15 +13,24 @@ jobs:
       - uses: actions/checkout@v4
       - run: go build cmd/gocertmgr.go
       
-      - name: Test valid gocertmgr flag, commands and arguments
+      - name: Test valid gocertmgr flag, commands and arguments with default rootdir (current dir)
         run: |
-          echo '{"rootdir": "."}' >certmgr.json
           ./gocertmgr createkeyandcert -cn "Test CA" -selfsigned ca testca
           ./gocertmgr createkeyandcsr intermediateca
           ./gocertmgr signcsr -cn "Intermediate CA" -signer testca ca intermediateca
           ./gocertmgr createkeyandcert -cn "Server Cert" -dns testserver.example.com -signer intermediateca server servercert
           ./gocertmgr createkeyandcert -cn "Client Cert" -signer testca client clientcert
 
+      - name: Test rootdir from certmgr.json
+        run: |
+          echo '{"rootdir": "."}' > certmgr.json
+          ./gocertmgr -config certmgr.json createkeyandcert -cn "Test CA 2" -selfsigned ca testca2
+
+      - name: Test rootdir from environment variable
+        run: |
+          export CERTMGR_ROOT_DIR="."
+          ./gocertmgr -config certmgr.json createkeyandcert -cn "Test CA 3" -selfsigned ca testca3
+      
       - name: Test gocertmgr flag, commands and arguments
         run: |
           ./gocertmgr invalidcommand || echo "Invalid command handled correctly"
