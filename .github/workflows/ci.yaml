@@ -94,7 +94,6 @@ jobs:
               --architecture amd64 \
               --license "BSD 3-Clause" \
               --maintainer "WatskeBart" \
-              --directories "/usr/local/bin:0755" \
               gocertmgr-linux-amd64=/usr/local/bin/gocertmgr
           done
           
