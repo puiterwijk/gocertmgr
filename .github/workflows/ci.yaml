@@ -12,7 +12,7 @@ on:
       - "*"
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions: {}
     steps:
       - uses: actions/checkout@v4
@@ -45,7 +45,8 @@ jobs:
           ./gocertmgr createkeyandcert -cn "Test" -dns "invalid..dns" -signer testca server test || echo "Invalid DNS handled correctly"
 
   builds:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    if: startsWith(github.ref, 'refs/tags/') && contains(github.ref, '.')
     permissions:
       contents: read
       actions: write
@@ -71,7 +72,11 @@ jobs:
 
   packages:
     needs: builds
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    if: startsWith(github.ref, 'refs/tags/') && contains(github.ref, '.')
+    permissions:
+      contents: read
+      actions: write
     steps:
       - name: Download artifacts
         uses: actions/download-artifact@v4
@@ -81,6 +86,7 @@ jobs:
       
       - name: Create package
         run: |
+          find ${{ github.workspace }} -type f -name "gocertmgr*" -exec chmod 755 {} +
           version=${GITHUB_REF#refs/tags/}
           if [[ "$version" == "$GITHUB_REF" ]]; then
             version=${GITHUB_SHA::8}
@@ -106,7 +112,7 @@ jobs:
 
   release:
     needs: [test, builds, packages]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     if: startsWith(github.ref, 'refs/tags/') && contains(github.ref, '.')
     permissions:
       contents: write
