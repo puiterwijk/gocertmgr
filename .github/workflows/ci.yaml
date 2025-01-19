@@ -82,6 +82,9 @@ jobs:
       - name: Create package
         run: |
           version=${GITHUB_REF#refs/tags/}
+          if [[ "$version" == "$GITHUB_REF" ]]; then
+            version=${GITHUB_SHA::8}
+          fi
           types=("deb" "rpm")
           path_formats=""
           for type in "${types[@]}"; do
@@ -95,6 +98,7 @@ jobs:
               gocertmgr-linux-amd64=/usr/local/bin/gocertmgr
             path_formats+="gocertmgr*.$type,"
           done
+          echo "path_formats=${path_formats%,}" >> $GITHUB_ENV
           
       - uses: actions/upload-artifact@v4
         with:
