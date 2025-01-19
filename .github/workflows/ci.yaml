@@ -122,7 +122,7 @@ jobs:
         with:
           name: Release ${{ github.ref_name }}
           draft: false
-          prerelease: contains(github.ref, '-')
+          prerelease: ${{ contains(github.ref_name, '-') }}
           files: |
             builds/**/*
           body: |
