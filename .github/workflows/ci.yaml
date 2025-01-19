@@ -81,13 +81,14 @@ jobs:
       
       - name: Create package
         run: |
+          version=${GITHUB_REF#refs/tags/}
           types=("deb" "rpm")
           path_formats=""
           for type in "${types[@]}"; do
             docker run --rm -v ${{ github.workspace }}:/packages -w /packages tenzer/fpm:no-entrypoint \
               fpm -s dir -t $type \
               --name gocertmgr \
-              --version ${GITHUB_REF#refs/tags/} \
+              --version "$version" \
               --architecture amd64 \
               --license "BSD 3-Clause" \
               --maintainer "WatskeBart" \
