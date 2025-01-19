@@ -68,7 +68,38 @@ jobs:
         with:
           name: "gocertmgr-${{ matrix.platform }}-${{ matrix.arch }}"
           path: "gocertmgr-${{ matrix.platform }}-${{ matrix.arch }}"
-  
+
+  packages:
+    needs: builds
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: gocertmgr-*
+          merge-multiple: true
+      
+      - name: Create package
+        run: |
+          types=("deb" "rpm")
+          path_formats=""
+          for type in "${types[@]}"; do
+            docker run --rm -v ${{ github.workspace }}:/packages -w /packages tenzer/fpm:no-entrypoint \
+              fpm -s dir -t $type \
+              --name gocertmgr \
+              --version ${GITHUB_REF#refs/tags/} \
+              --architecture amd64 \
+              --license "BSD 3-Clause" \
+              --maintainer "WatskeBart" \
+              gocertmgr-linux-amd64=/usr/local/bin/gocertmgr
+            path_formats+="gocertmgr*.$type,"
+          done
+          
+      - uses: actions/upload-artifact@v4
+        with:
+          name: gocertmgr-packages
+          path: ${{ env.path_formats }}
+
   release:
     needs: [test, builds]
     runs-on: ubuntu-latest
