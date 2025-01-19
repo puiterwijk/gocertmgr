@@ -68,9 +68,44 @@ jobs:
         with:
           name: "gocertmgr-${{ matrix.platform }}-${{ matrix.arch }}"
           path: "gocertmgr-${{ matrix.platform }}-${{ matrix.arch }}"
-  
+
+  packages:
+    needs: builds
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: gocertmgr-*
+          merge-multiple: true
+      
+      - name: Create package
+        run: |
+          version=${GITHUB_REF#refs/tags/}
+          if [[ "$version" == "$GITHUB_REF" ]]; then
+            version=${GITHUB_SHA::8}
+          fi
+          types=("deb" "rpm")
+          for type in "${types[@]}"; do
+            docker run --rm -v ${{ github.workspace }}:/packages -w /packages tenzer/fpm:no-entrypoint \
+              fpm -s dir -t $type \
+              --name gocertmgr \
+              --version "$version" \
+              --architecture amd64 \
+              --license "BSD 3-Clause" \
+              --maintainer "WatskeBart" \
+              gocertmgr-linux-amd64=/usr/local/bin/gocertmgr
+          done
+          
+      - uses: actions/upload-artifact@v4
+        with:
+          name: gocertmgr-packages
+          path: |
+            gocertmgr_*_amd64.deb
+            gocertmgr-*-1.x86_64.rpm
+
   release:
-    needs: [test, builds]
+    needs: [test, builds, packages]
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/') && contains(github.ref, '.')
     permissions:
@@ -87,24 +122,40 @@ jobs:
         with:
           name: Release ${{ github.ref_name }}
           draft: false
-          prerelease: contains(github.ref, '-')
-          files: builds/**/*
+          prerelease: ${{ contains(github.ref_name, '-') }}
+          files: |
+            builds/**/*
           body: |
             ## gocertmgr ${{ github.ref_name }}
             
-            ### Binaries
+            ### Available binaries
             - Linux (amd64, arm64)
             - macOS (amd64, arm64)
             - Windows (amd64, arm64)
             
-            ### Installation
+            #### Package installation
+
+            Download the appropriate package for your system and install it.
+
+            ##### RPM
+
+            Terminal: `sudo rpm -i <package-name>.rpm`
+
+            ##### DEB
+
+            Terminal: `sudo dpkg -i <package-name>.deb`
+
+            #### Binary installation
+            
             Download the appropriate binary for your system and add it to your PATH.
 
-            #### Linux
+            ##### Linux
+
             Shell: `export PATH=$PATH:<path/to/gocertmgr>`
             Add this to your shell configuration file e.g. `.bashrc` to make it permanent
 
-            #### Windows
+            ##### Windows
+
             Command prompt: `setx PATH "%PATH%;<path/to/gocertmgr>"`
             PowerShell: `[Environment]::SetEnvironmentVariable("Path", $env:Path + ";<path/to/gocertmgr>", "User")`
             You need to reload your terminal afterwards
