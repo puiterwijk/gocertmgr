@@ -96,7 +96,6 @@ jobs:
               --maintainer "WatskeBart" \
               gocertmgr-linux-amd64=/usr/local/bin/gocertmgr
           done
-          echo $GITHUB_ENV
           
       - uses: actions/upload-artifact@v4
         with:
@@ -106,7 +105,7 @@ jobs:
             gocertmgr-*-1.x86_64.rpm
 
   release:
-    needs: [test, builds]
+    needs: [test, builds, packages]
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/') && contains(github.ref, '.')
     permissions:
@@ -124,7 +123,8 @@ jobs:
           name: Release ${{ github.ref_name }}
           draft: false
           prerelease: contains(github.ref, '-')
-          files: builds/**/*
+          files: |
+            builds/**/*
           body: |
             ## gocertmgr ${{ github.ref_name }}
             
