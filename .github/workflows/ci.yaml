@@ -99,6 +99,7 @@ jobs:
             path_formats+="gocertmgr*.$type,"
           done
           echo "path_formats=${path_formats%,}" >> $GITHUB_ENV
+          echo $GITHUB_ENV
           
       - uses: actions/upload-artifact@v4
         with:
