@@ -86,7 +86,6 @@ jobs:
             version=${GITHUB_SHA::8}
           fi
           types=("deb" "rpm")
-          path_formats=""
           for type in "${types[@]}"; do
             docker run --rm -v ${{ github.workspace }}:/packages -w /packages tenzer/fpm:no-entrypoint \
               fpm -s dir -t $type \
@@ -96,15 +95,15 @@ jobs:
               --license "BSD 3-Clause" \
               --maintainer "WatskeBart" \
               gocertmgr-linux-amd64=/usr/local/bin/gocertmgr
-            path_formats+="gocertmgr*.$type,"
           done
-          echo "path_formats=${path_formats%,}" >> $GITHUB_ENV
           echo $GITHUB_ENV
           
       - uses: actions/upload-artifact@v4
         with:
           name: gocertmgr-packages
-          path: ${{ env.path_formats }}
+          path: |
+            gocertmgr_*_amd64.deb
+            gocertmgr-*-1.x86_64.rpm
 
   release:
     needs: [test, builds]
