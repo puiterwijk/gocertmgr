@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/puiterwijk/gocertmgr/pkg/cmd"
+	"github.com/WatskeBart/gocertmgr/pkg/cmd"
 )
 
 func main() {

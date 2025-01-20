@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/puiterwijk/gocertmgr/pkg/config"
+	"github.com/WatskeBart/gocertmgr/pkg/config"
 
 	pkcs12 "software.sslmate.com/src/go-pkcs12"
 )
