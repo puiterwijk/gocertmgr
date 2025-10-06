@@ -99,7 +99,7 @@ jobs:
               --version "$version" \
               --architecture amd64 \
               --license "BSD 3-Clause" \
-              --maintainer "WatskeBart" \
+              --maintainer "puiterwijk" \
               gocertmgr-linux-amd64=/usr/local/bin/gocertmgr
           done
           

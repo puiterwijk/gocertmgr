@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/WatskeBart/gocertmgr/pkg/config"
+	"github.com/puiterwijk/gocertmgr/pkg/config"
 )
 
 const usageTemplate = `gocertmgr is a certificate management tool.

@@ -12,7 +12,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/WatskeBart/gocertmgr/pkg/config"
+	"github.com/puiterwijk/gocertmgr/pkg/config"
 )
 
 type keyInfoFlags struct {
