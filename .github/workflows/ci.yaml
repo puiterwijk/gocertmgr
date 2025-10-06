@@ -1,26 +1,55 @@
+permissions: {}
+
 name: CI
 on:
   push:
     branches:
       - "*"
+    tags:
+      - "[0-9]+.[0-9]+.[0-9]+*"
   pull_request:
     branches:
       - "*"
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    permissions: {}
     steps:
       - uses: actions/checkout@v4
       - run: go build cmd/gocertmgr.go
-      - run: |
-          echo '{"rootdir": "."}' >certmgr.json
+      
+      - name: Test valid gocertmgr flag, commands and arguments with default rootdir (current dir)
+        run: |
           ./gocertmgr createkeyandcert -cn "Test CA" -selfsigned ca testca
           ./gocertmgr createkeyandcsr intermediateca
           ./gocertmgr signcsr -cn "Intermediate CA" -signer testca ca intermediateca
           ./gocertmgr createkeyandcert -cn "Server Cert" -dns testserver.example.com -signer intermediateca server servercert
           ./gocertmgr createkeyandcert -cn "Client Cert" -signer testca client clientcert
+
+      - name: Test rootdir from certmgr.json
+        run: |
+          echo '{"rootdir": "."}' > certmgr.json
+          ./gocertmgr -config certmgr.json createkeyandcert -cn "Test CA 2" -selfsigned ca testca2
+
+      - name: Test rootdir from environment variable
+        run: |
+          export CERTMGR_ROOT_DIR="."
+          ./gocertmgr -config certmgr.json createkeyandcert -cn "Test CA 3" -selfsigned ca testca3
+      
+      - name: Test gocertmgr flag, commands and arguments
+        run: |
+          ./gocertmgr invalidcommand || echo "Invalid command handled correctly"
+          ./gocertmgr createkeyandcert || echo "Missing args handled correctly"
+          ./gocertmgr createkeyandcert -cn "Invalid" -selfsigned invalid testinvalid || echo "Invalid cert type handled correctly"
+          ./gocertmgr createkeyandcert -cn "Test" -signer nonexistent server test || echo "Invalid signer handled correctly"
+          ./gocertmgr createkeyandcert -cn "Test" -dns "invalid..dns" -signer testca server test || echo "Invalid DNS handled correctly"
+
   builds:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    if: startsWith(github.ref, 'refs/tags/') && contains(github.ref, '.')
+    permissions:
+      contents: read
+      actions: write
     strategy:
       matrix:
         platform:
@@ -29,6 +58,7 @@ jobs:
           - windows
         arch:
           - amd64
+          - arm64
     steps:
       - uses: actions/checkout@v4
       - run: go build -o "gocertmgr-${{ matrix.platform }}-${{ matrix.arch }}" cmd/gocertmgr.go
@@ -39,3 +69,99 @@ jobs:
         with:
           name: "gocertmgr-${{ matrix.platform }}-${{ matrix.arch }}"
           path: "gocertmgr-${{ matrix.platform }}-${{ matrix.arch }}"
+
+  packages:
+    needs: builds
+    runs-on: ubuntu-24.04
+    if: startsWith(github.ref, 'refs/tags/') && contains(github.ref, '.')
+    permissions:
+      contents: read
+      actions: write
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: gocertmgr-*
+          merge-multiple: true
+      
+      - name: Create package
+        run: |
+          find ${{ github.workspace }} -type f -name "gocertmgr*" -exec chmod 755 {} +
+          version=${GITHUB_REF#refs/tags/}
+          if [[ "$version" == "$GITHUB_REF" ]]; then
+            version=${GITHUB_SHA::8}
+          fi
+          types=("deb" "rpm")
+          for type in "${types[@]}"; do
+            docker run --rm -v ${{ github.workspace }}:/packages -w /packages tenzer/fpm:no-entrypoint \
+              fpm -s dir -t $type \
+              --name gocertmgr \
+              --version "$version" \
+              --architecture amd64 \
+              --license "BSD 3-Clause" \
+              --maintainer "puiterwijk" \
+              gocertmgr-linux-amd64=/usr/local/bin/gocertmgr
+          done
+          
+      - uses: actions/upload-artifact@v4
+        with:
+          name: gocertmgr-packages
+          path: |
+            gocertmgr_*_amd64.deb
+            gocertmgr-*-1.x86_64.rpm
+
+  release:
+    needs: [test, builds, packages]
+    runs-on: ubuntu-24.04
+    if: startsWith(github.ref, 'refs/tags/') && contains(github.ref, '.')
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: actions/download-artifact@v4
+        with:
+          path: builds
+          
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: Release ${{ github.ref_name }}
+          draft: false
+          prerelease: ${{ contains(github.ref_name, '-') }}
+          files: |
+            builds/**/*
+          body: |
+            ## gocertmgr ${{ github.ref_name }}
+            
+            ### Available binaries
+            - Linux (amd64, arm64)
+            - macOS (amd64, arm64)
+            - Windows (amd64, arm64)
+            
+            #### Package installation
+
+            Download the appropriate package for your system and install it.
+
+            ##### RPM
+
+            Terminal: `sudo rpm -i <package-name>.rpm`
+
+            ##### DEB
+
+            Terminal: `sudo dpkg -i <package-name>.deb`
+
+            #### Binary installation
+            
+            Download the appropriate binary for your system and add it to your PATH.
+
+            ##### Linux
+
+            Shell: `export PATH=$PATH:<path/to/gocertmgr>`
+            Add this to your shell configuration file e.g. `.bashrc` to make it permanent
+
+            ##### Windows
+
+            Command prompt: `setx PATH "%PATH%;<path/to/gocertmgr>"`
+            PowerShell: `[Environment]::SetEnvironmentVariable("Path", $env:Path + ";<path/to/gocertmgr>", "User")`
+            You need to reload your terminal afterwards

@@ -8,12 +8,13 @@ import (
 	"encoding/pem"
 	"flag"
 	"fmt"
-	"github.com/puiterwijk/gocertmgr/pkg/config"
 	"math/big"
 	"os"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/puiterwijk/gocertmgr/pkg/config"
 )
 
 type signeeArgs struct {
@@ -56,7 +57,7 @@ func (s signArgs) getValidityDuration() (*time.Duration, error) {
 	if unit == 'y' {
 		return &dur, nil
 	}
-	return nil, fmt.Errorf("invalid unit for validity: %s", unit)
+	return nil, fmt.Errorf("invalid unit for validity: %c", unit)
 }
 
 func (s signArgs) createTemplate(config *config.Config, certType string) (*x509.Certificate, error) {

@@ -5,11 +5,14 @@ import (
 	"runtime/debug"
 )
 
+var Version string = "0.2.0"
+
 func executeVersion() error {
-	verInfo, ok := debug.ReadBuildInfo()
-	if !ok {
-		return fmt.Errorf("failed to read build info")
+	fmt.Printf("gocertmgr version: %s\n", Version)
+
+	// Also show build info for debugging purposes
+	if verInfo, ok := debug.ReadBuildInfo(); ok {
+		fmt.Printf("\nBuild Information:\n%s\n", verInfo)
 	}
-	fmt.Printf("Version: %s\n", verInfo.String())
 	return nil
 }
